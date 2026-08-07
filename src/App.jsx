@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
 import { ViewerProvider } from './context/ViewerContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
@@ -28,53 +27,51 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider>
-          <ViewerProvider>
-            <BrowserRouter>
-              <Routes>
-                {/* Public */}
-                <Route path="/login" element={<Login />} />
+        <ViewerProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public */}
+              <Route path="/login" element={<Login />} />
 
-                {/* Protected Layout */}
-                <Route
-                  path="/"
-                  element={
-                    <ProtectedRoute>
-                      <AdminLayout />
-                    </ProtectedRoute>
-                  }
-                >
-                  <Route index element={<Navigate to="/dashboard" replace />} />
-                  <Route path="dashboard" element={<Dashboard />} />
-                  <Route path="members" element={<Members />} />
-                  <Route path="contributions" element={<Contributions />} />
-                  <Route path="reports" element={<Reports />} />
-                  <Route path="settings" element={<Settings />} />
-                  <Route path="profile" element={<Profile />} />
-                </Route>
+              {/* Protected Layout */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<Dashboard />} />
+                <Route path="members" element={<Members />} />
+                <Route path="contributions" element={<Contributions />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="profile" element={<Profile />} />
+              </Route>
 
-                {/* Fallback */}
-                <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
-            </BrowserRouter>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </BrowserRouter>
 
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: 'var(--bg-card)',
-                  color: 'var(--text-1)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '12px',
-                  fontSize: '0.875rem',
-                },
-                success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-                error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-              }}
-            />
-          </ViewerProvider>
-        </ThemeProvider>
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 3000,
+              style: {
+                background: 'var(--bg-card)',
+                color: 'var(--text-1)',
+                border: '1px solid var(--border)',
+                borderRadius: '12px',
+                fontSize: '0.875rem',
+              },
+              success: { iconTheme: { primary: '#16a34a', secondary: '#fff' } },
+              error: { iconTheme: { primary: '#dc2626', secondary: '#fff' } },
+            }}
+          />
+        </ViewerProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

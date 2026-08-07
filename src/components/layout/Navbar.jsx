@@ -1,5 +1,4 @@
-import { Menu, Sun, Moon, Eye, ShieldCheck, User } from 'lucide-react';
-import { useTheme } from '../../context/ThemeContext';
+import { Menu, Eye, ShieldCheck, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useViewer } from '../../context/ViewerContext';
 import { useLocation, Link } from 'react-router-dom';
@@ -14,7 +13,6 @@ const pageTitles = {
 };
 
 const Navbar = ({ collapsed, setMobileDrawerOpen }) => {
-  const { isDark, toggleTheme } = useTheme();
   const { user } = useAuth();
   const { isViewer, toggleViewerMode } = useViewer();
   const location = useLocation();
@@ -55,8 +53,8 @@ const Navbar = ({ collapsed, setMobileDrawerOpen }) => {
           onClick={toggleViewerMode}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border transition-all ${
             isViewer
-              ? 'bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20'
-              : 'bg-indigo-500/10 text-indigo-500 border-indigo-500/30 hover:bg-indigo-500/20'
+              ? 'bg-amber-500/10 text-amber-600 border-amber-500/30 hover:bg-amber-500/20'
+              : 'bg-blue-500/10 text-blue-600 border-blue-500/30 hover:bg-blue-500/20'
           }`}
           title={isViewer ? 'Click to switch to Admin Mode' : 'Click to switch to Viewer Mode'}
         >
@@ -64,18 +62,9 @@ const Navbar = ({ collapsed, setMobileDrawerOpen }) => {
           <span className="hidden xs:inline">{isViewer ? 'Viewer' : 'Admin'}</span>
         </button>
 
-        {/* Theme Toggle Button */}
-        <button
-          onClick={toggleTheme}
-          className="btn btn-ghost btn-icon"
-          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {isDark ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-
         {/* User Profile Link */}
         <Link to="/profile" className="flex items-center gap-2 pl-1">
-          <div className="w-8 h-8 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+          <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
             {user?.name?.charAt(0)?.toUpperCase() || <User size={14} />}
           </div>
         </Link>

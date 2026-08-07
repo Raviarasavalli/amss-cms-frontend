@@ -200,19 +200,19 @@ const Reports = () => {
                       <td className="font-mono text-xs text-center" style={{ color: 'var(--text-3)' }}>{idx + 1}</td>
                       <td className="font-medium" style={{ color: 'var(--text-1)' }}>{row.name}</td>
                       {activeMonths.map((m) => (
-                        <td key={m} className={`text-left ${row[m] > 0 ? 'text-slate-900 dark:text-slate-100 font-normal' : 'text-slate-400'}`}>
+                        <td key={m} className={`text-left ${row[m] > 0 ? 'text-slate-900 font-normal' : 'text-slate-400'}`}>
                           {row[m] > 0 ? `${CURRENCY} ${row[m].toLocaleString('en-IN')}` : `${CURRENCY} `}
                         </td>
                       ))}
                     </tr>
                   ))}
 
-                  <tr className="border-t-2 font-bold bg-slate-50 dark:bg-slate-900" style={{ borderColor: 'var(--border)' }}>
+                  <tr className="border-t-2 font-bold bg-slate-50" style={{ borderColor: 'var(--border)' }}>
                     <td colSpan={2} className="text-right pr-4">Total Summary</td>
                     {activeMonths.map((m) => (
                       <td key={m} className="text-left py-2">
                         <div className="text-[10px] text-slate-500 font-normal">Sum:</div>
-                        <div className="text-xs text-slate-900 dark:text-slate-100">{CURRENCY}{(monthlyTotals[m] || 0).toLocaleString('en-IN')}</div>
+                        <div className="text-xs text-slate-900">{CURRENCY}{(monthlyTotals[m] || 0).toLocaleString('en-IN')}</div>
                       </td>
                     ))}
                   </tr>
@@ -222,7 +222,7 @@ const Reports = () => {
           </table>
         </div>
 
-        <div className="text-center pt-4 text-xs font-semibold text-indigo-600 dark:text-indigo-400 border-t" style={{ borderColor: 'var(--border)' }}>
+        <div className="text-center pt-4 text-xs font-semibold text-blue-600 border-t" style={{ borderColor: 'var(--border)' }}>
           Grand Total: {CURRENCY}{grandTotal.toLocaleString('en-IN')}
         </div>
       </Card>
