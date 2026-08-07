@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Building2, Lock, Mail, Sparkles, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -13,8 +13,8 @@ const Login = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
-      email: 'admin@amss.com',
-      password: 'Admin@123',
+      email: '',
+      password: '',
     },
   });
 
@@ -40,7 +40,7 @@ const Login = () => {
       </div>
 
       <div className="relative w-full max-w-md animate-scale-in">
-        {/* Main Light Card */}
+        {/* Main Production Card */}
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-6">
           {/* Logo Header */}
           <div className="text-center space-y-2">
@@ -55,24 +55,7 @@ const Login = () => {
             </p>
           </div>
 
-          {/* Demo Administrator Credentials Alert Box */}
-          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 space-y-1.5">
-            <div className="flex items-center gap-1.5 text-blue-700 text-xs font-bold uppercase tracking-wider">
-              <Sparkles size={14} /> Demo Administrator Access
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs pt-1">
-              <div>
-                <span className="text-slate-600 font-medium">Email: </span>
-                <span className="font-mono font-bold text-slate-900">admin@amss.com</span>
-              </div>
-              <div>
-                <span className="text-slate-600 font-medium">Password: </span>
-                <span className="font-mono font-bold text-slate-900">Admin@123</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Login Form */}
+          {/* Production Login Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email Field */}
             <div className="space-y-1.5">
@@ -87,7 +70,7 @@ const Login = () => {
                     pattern: { value: /^\S+@\S+\.\S+$/, message: 'Invalid email address' },
                   })}
                   type="email"
-                  placeholder="admin@amss.com"
+                  placeholder="name@example.com"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium transition-all outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
                 />
               </div>
@@ -104,7 +87,7 @@ const Login = () => {
                 <input
                   {...register('password', { required: 'Password is required' })}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••••••"
+                  placeholder="Enter your password"
                   className="w-full pl-10 pr-12 py-3 rounded-xl border border-slate-200 bg-white text-slate-900 text-sm font-medium transition-all outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20"
                 />
                 <button
