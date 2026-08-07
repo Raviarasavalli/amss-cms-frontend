@@ -66,7 +66,7 @@ const Profile = () => {
       {/* Update Profile Card */}
       <Card className="p-6 space-y-4">
         <h3 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--text-1)' }}>
-          <User size={16} className="text-indigo-500" /> Personal Information
+          <User size={16} className="text-blue-600" /> Personal Information
         </h3>
         <form onSubmit={handleProfileSubmit(profileMutation.mutate)} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -99,7 +99,7 @@ const Profile = () => {
       {!isViewer && (
         <Card className="p-6 space-y-4">
           <h3 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--text-1)' }}>
-            <Lock size={16} className="text-indigo-500" /> Change Password
+            <Lock size={16} className="text-blue-600" /> Change Password
           </h3>
           <form onSubmit={handlePwdSubmit(pwdMutation.mutate)} className="space-y-4">
             <Field label="Current Password" required error={pwdErrors.currentPassword?.message}>
@@ -112,7 +112,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowCurrent(!showCurrent)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600"
                 >
                   {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
@@ -131,7 +131,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600"
                 >
                   {showNew ? <EyeOff size={14} /> : <Eye size={14} />}
                 </button>
