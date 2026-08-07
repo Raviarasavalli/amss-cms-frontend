@@ -11,3 +11,17 @@ export const AVAILABLE_YEARS = Array.from(
 );
 
 export const DEFAULT_YEAR = new Date().getFullYear() < START_YEAR ? START_YEAR : new Date().getFullYear();
+
+/**
+ * Production API & Asset URL Helpers
+ */
+export const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+export const getUploadUrl = (path) => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+    return path;
+  }
+  const apiBase = API_URL.replace(/\/api\/?$/, '');
+  return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
+};
