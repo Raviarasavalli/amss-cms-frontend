@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ViewerProvider } from './context/ViewerContext';
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import AdminLayout from './layouts/AdminLayout';
@@ -24,6 +24,13 @@ const queryClient = new QueryClient({
   },
 });
 
+// Smart home route: logged-in admin goes to /dashboard; guests/members go to /public-reports
+const HomeRoute = () => {
+  const { isAuthenticated, loading } = useAuth();
+  if (loading) return null;
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/public-reports" replace />;
+};
+
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
@@ -31,30 +38,33 @@ const App = () => {
         <ViewerProvider>
           <BrowserRouter>
             <Routes>
-              {/* Public Routes — no login required */}
-              <Route path="/login" element={<Login />} />
-              <Route path="/public-reports" element={<PublicReport />} />
+              {/* Home redirect: guest -> /public-reports, admin -> /dashboard */}
+              <Route path="/" element={<HomeRoute />} />
 
-              {/* Protected Layout */}
+              {/* Public Routes — completely open to everyone without login */}
+              <Route path="/public-reports" element={<PublicReport />} />
+              <Route path="/public-report" element={<PublicReport />} />
+              <Route path="/public" element={<PublicReport />} />
+              <Route path="/login" element={<Login />} />
+
+              {/* Protected Admin Layout & Routes */}
               <Route
-                path="/"
                 element={
                   <ProtectedRoute>
                     <AdminLayout />
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="/dashboard" replace />} />
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="members" element={<Members />} />
-                <Route path="contributions" element={<Contributions />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="profile" element={<Profile />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/members" element={<Members />} />
+                <Route path="/contributions" element={<Contributions />} />
+                <Route path="/reports" element={<Reports />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/profile" element={<Profile />} />
               </Route>
 
-              {/* Fallback — only for truly unknown routes */}
-              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              {/* Fallback — redirect unknown URLs to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
 

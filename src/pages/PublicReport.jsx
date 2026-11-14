@@ -1,9 +1,10 @@
 import { useState, useRef, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search, Download, Printer, Globe, Calendar, Users,
   IndianRupee, TrendingUp, AlertCircle, RefreshCw, ChevronRight,
-  Building2, Info
+  Building2, Info, ShieldCheck
 } from 'lucide-react';
 import axios from 'axios';
 import { generateAndDownloadPdf, generateAndPrintPdf } from '../utils/generateContributionPdf';
@@ -50,6 +51,9 @@ function PageHeader({ year, lastUpdated, orgName }) {
           <span className="pub-meta-pill">
             <RefreshCw size={12} /> Updated {dateStr}
           </span>
+          <Link to="/login" className="pub-meta-pill hover:bg-white/25 transition-colors" title="CMS Admin Login">
+            <ShieldCheck size={12} /> Admin Login
+          </Link>
         </div>
       </div>
 

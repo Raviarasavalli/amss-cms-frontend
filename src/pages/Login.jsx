@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { Eye, EyeOff, Building2, Lock, Mail, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Building2, Lock, Mail, ArrowRight, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -121,6 +121,21 @@ const Login = () => {
               )}
             </button>
           </form>
+
+          {/* Member Public Reports Link — No Login Needed */}
+          <div className="pt-2">
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200/80 text-center space-y-1.5">
+              <p className="text-xs font-semibold text-emerald-950">
+                Are you an AMSS Member?
+              </p>
+              <Link
+                to="/public-reports"
+                className="inline-flex items-center justify-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition-colors w-full"
+              >
+                <FileText size={14} /> View Monthly Contribution Reports &rarr;
+              </Link>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="text-center pt-2 border-t border-slate-100">
