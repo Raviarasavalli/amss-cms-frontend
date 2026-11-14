@@ -12,6 +12,7 @@ import Contributions from './pages/Contributions';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Profile from './pages/Profile';
+import PublicReport from './pages/PublicReport';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,8 +31,9 @@ const App = () => {
         <ViewerProvider>
           <BrowserRouter>
             <Routes>
-              {/* Public */}
+              {/* Public Routes — no login required */}
               <Route path="/login" element={<Login />} />
+              <Route path="/public-reports" element={<PublicReport />} />
 
               {/* Protected Layout */}
               <Route
@@ -51,7 +53,7 @@ const App = () => {
                 <Route path="profile" element={<Profile />} />
               </Route>
 
-              {/* Fallback */}
+              {/* Fallback — only for truly unknown routes */}
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
           </BrowserRouter>

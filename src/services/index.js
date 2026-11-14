@@ -43,6 +43,10 @@ export const reportService = {
     params: { year },
     responseType: 'blob',
   }),
+  // Admin public report publishing controls
+  getPublicSettings: () => api.get('/reports/public-settings'),
+  togglePublishYear: (year, isPublished) =>
+    api.post('/reports/public-settings/toggle', { year, isPublished }),
 };
 
 export const settingsService = {

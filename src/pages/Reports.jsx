@@ -9,6 +9,7 @@ import {
 } from '../components/ui';
 import { generateAndDownloadPdf, generateAndPrintPdf } from '../utils/generateContributionPdf';
 import { AVAILABLE_YEARS, DEFAULT_YEAR } from '../utils/constants';
+import PublicReportSettings from '../components/PublicReportSettings';
 import toast from 'react-hot-toast';
 
 const MONTHS = ['january', 'february', 'march', 'april', 'may', 'june',
@@ -226,6 +227,9 @@ const Reports = () => {
           Grand Total: {CURRENCY}{grandTotal.toLocaleString('en-IN')}
         </div>
       </Card>
+
+      {/* Admin Public Report Publishing Controls */}
+      <PublicReportSettings />
     </div>
   );
 };
