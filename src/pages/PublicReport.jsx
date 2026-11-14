@@ -148,12 +148,31 @@ function ContributionTable({ rows, monthlyTotals, grandTotal, loading }) {
                 {rows.map((row, idx) => (
                   <tr key={row.memberNumber ?? idx} className={idx % 2 === 0 ? 'pub-row-even' : 'pub-row-odd'}>
                     <td className="pub-td-sticky pub-td-sno">{idx + 1}</td>
-                    <td className="pub-td-sticky pub-td-name">{row.name}</td>
-                    {MONTHS.map((m) => (
-                      <td key={m} className={`pub-td-month ${row[m] > 0 ? 'pub-amount-paid' : 'pub-amount-zero'}`}>
-                        {row[m] > 0 ? fmt(row[m]) : '—'}
-                      </td>
-                    ))}
+                    <td className="pub-td-sticky pub-td-name">
+                      <div className="pub-name-wrap">
+                        <span className="pub-name-text">{row.name}</span>
+                        {row.status === 'inactive' && (
+                          <span className="pub-inactive-badge">Inactive</span>
+                        )}
+                      </div>
+                    </td>
+                    {MONTHS.map((m) => {
+                      const isInactive = row[`${m}_inactive`];
+                      return (
+                        <td
+                          key={m}
+                          className={`pub-td-month ${
+                            isInactive
+                              ? 'pub-amount-inactive'
+                              : row[m] > 0
+                              ? 'pub-amount-paid'
+                              : 'pub-amount-zero'
+                          }`}
+                        >
+                          {isInactive ? 'Inactive' : row[m] > 0 ? fmt(row[m]) : '—'}
+                        </td>
+                      );
+                    })}
                     <td className="pub-td-total">{fmt(row.total)}</td>
                   </tr>
                 ))}
@@ -473,6 +492,14 @@ table td, table th { padding: 9px 12px; }
 .pub-row-even:hover, .pub-row-odd:hover { background: #ecfdf5; }
 .pub-amount-paid { color: #111827; }
 .pub-amount-zero { color: #d1d5db; font-size: 12px; }
+.pub-amount-inactive { color: #9ca3af; font-size: 11px; font-style: italic; }
+.pub-name-wrap { display: flex; align-items: center; gap: 6px; }
+.pub-name-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pub-inactive-badge {
+  display: inline-block; font-size: 9px; font-weight: 700; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 4px; background: #fef3c7; color: #b45309;
+  border: 1px solid #fde68a; flex-shrink: 0;
+}
 
 /* Totals row */
 .pub-totals-row { background: #064e3b !important; }

@@ -52,8 +52,8 @@ const Reports = () => {
     setPdfLoading(true);
     try {
       generateAndDownloadPdf({
-        members: membersList || memberRows,
-        contributions: contributionsList || data?.contributions || [],
+        members: memberRows,
+        contributions: data?.contributions || contributionsList || [],
         year,
       });
       toast.success(`PDF report generated for Year ${year}!`);
@@ -68,8 +68,8 @@ const Reports = () => {
   const handlePrintPDF = () => {
     try {
       generateAndPrintPdf({
-        members: membersList || memberRows,
-        contributions: contributionsList || data?.contributions || [],
+        members: memberRows,
+        contributions: data?.contributions || contributionsList || [],
         year,
       });
       toast.success(`Opening print dialog for Year ${year} PDF report…`);
@@ -199,10 +199,23 @@ const Reports = () => {
                   {memberRows.map((row, idx) => (
                     <tr key={row._id}>
                       <td className="font-mono text-xs text-center" style={{ color: 'var(--text-3)' }}>{idx + 1}</td>
-                      <td className="font-medium" style={{ color: 'var(--text-1)' }}>{row.name}</td>
+                      <td className="font-medium" style={{ color: 'var(--text-1)' }}>
+                        <div className="flex items-center gap-1.5">
+                          <span>{row.name}</span>
+                          {row.status === 'inactive' && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500">
+                              Inactive
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       {activeMonths.map((m) => (
-                        <td key={m} className={`text-left ${row[m] > 0 ? 'text-slate-900 font-normal' : 'text-slate-400'}`}>
-                          {row[m] > 0 ? `${CURRENCY} ${row[m].toLocaleString('en-IN')}` : `${CURRENCY} `}
+                        <td key={m} className={`text-left ${row[`${m}_inactive`] ? 'text-slate-400 italic' : (row[m] > 0 ? 'text-slate-900 font-normal' : 'text-slate-400')}`}>
+                          {row[`${m}_inactive`] ? (
+                            <span className="text-[11px] text-slate-400 italic">Inactive</span>
+                          ) : (
+                            row[m] > 0 ? `${CURRENCY} ${row[m].toLocaleString('en-IN')}` : `${CURRENCY} `
+                          )}
                         </td>
                       ))}
                     </tr>

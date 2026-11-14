@@ -22,7 +22,37 @@ const MONTH_FULL = ['January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'];
 const CURRENCY = '₹';
 
-const ContributionForm = ({ contribution, onSuccess, onClose }) => {
+const getMonthIndex = (month) => {
+  if (!month) return -1;
+  return MONTHS.indexOf(month.toLowerCase());
+};
+
+const isMonthInactive = (c, m) => {
+  if (!c) return false;
+  if (c[`${m}_inactive`] !== undefined) return c[`${m}_inactive`];
+
+  const targetIdx = getMonthIndex(m);
+  if (targetIdx === -1) return false;
+
+  if (c.status === 'inactive' || c.inactiveFromMonth) {
+    const inactiveIdx = c.inactiveFromMonth ? getMonthIndex(c.inactiveFromMonth) : 0;
+    const reactivatedIdx = c.reactivatedFromMonth ? getMonthIndex(c.reactivatedFromMonth) : -1;
+
+    if (reactivatedIdx !== -1 && inactiveIdx !== -1 && reactivatedIdx > inactiveIdx) {
+      return targetIdx >= inactiveIdx && targetIdx < reactivatedIdx;
+    }
+
+    if (inactiveIdx !== -1) {
+      return targetIdx >= inactiveIdx;
+    }
+
+    return c.status === 'inactive';
+  }
+
+  return false;
+};
+
+const ContributionForm = ({ contribution, currentYear, onSuccess, onClose }) => {
   const { data: membersData, isLoading: membersLoading } = useQuery({
     queryKey: ['members-all'],
     queryFn: () => memberService.getAllList().then((r) => r.data.data),
@@ -31,18 +61,31 @@ const ContributionForm = ({ contribution, onSuccess, onClose }) => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm({
     defaultValues: {
       memberId: contribution?.memberId?._id || contribution?.memberId || '',
-      year: contribution?.year || DEFAULT_YEAR,
+      year: contribution?.year || currentYear || DEFAULT_YEAR,
+      status: contribution?.status || 'active',
+      inactiveFromMonth: contribution?.inactiveFromMonth || '',
+      reactivatedFromMonth: contribution?.reactivatedFromMonth || '',
       ...MONTHS.reduce((acc, m) => ({ ...acc, [m]: contribution?.[m] || 0 }), {}),
     },
   });
 
   const queryClient = useQueryClient();
   const watchedValues = watch(MONTHS);
+  const watchedStatus = watch('status');
+  const watchedInactiveMonth = watch('inactiveFromMonth');
+  const watchedReactivatedMonth = watch('reactivatedFromMonth');
+
   const total = watchedValues.reduce((s, v) => s + (parseFloat(v) || 0), 0);
 
   const mutation = useMutation({
     mutationFn: (data) => {
-      const payload = { ...data, year: parseInt(data.year) };
+      const payload = {
+        ...data,
+        year: parseInt(data.year),
+        status: data.status,
+        inactiveFromMonth: data.inactiveFromMonth || null,
+        reactivatedFromMonth: data.reactivatedFromMonth || null,
+      };
       MONTHS.forEach((m) => { payload[m] = parseFloat(payload[m]) || 0; });
       return contribution
         ? contributionService.update(contribution._id, payload)
@@ -50,6 +93,7 @@ const ContributionForm = ({ contribution, onSuccess, onClose }) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contributions'] });
+      queryClient.invalidateQueries({ queryKey: ['annual-report'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success(contribution ? 'Contribution record updated!' : 'Contribution record saved!');
       onSuccess();
@@ -66,7 +110,9 @@ const ContributionForm = ({ contribution, onSuccess, onClose }) => {
           <Select {...register('memberId', { required: 'Member is required' })} disabled={!!contribution}>
             <option value="">Choose member…</option>
             {(membersData || []).map((m) => (
-              <option key={m._id} value={m._id}>#{m.memberNumber} — {m.name}</option>
+              <option key={m._id} value={m._id}>
+                #{m.memberNumber} — {m.name} {m.status === 'inactive' ? '(Profile: Inactive)' : ''}
+              </option>
             ))}
           </Select>
         </Field>
@@ -79,21 +125,66 @@ const ContributionForm = ({ contribution, onSuccess, onClose }) => {
         </Field>
       </div>
 
+      {/* Year-Specific Membership Status & Effective Inactive Months */}
+      <div className="p-3 rounded-xl bg-slate-50 border space-y-3" style={{ borderColor: 'var(--border)' }}>
+        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">Year Status & Inactive Period</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Field label="Member Status in this Year">
+            <Select {...register('status')}>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </Select>
+          </Field>
+          <Field label="Inactive Effective From">
+            <Select {...register('inactiveFromMonth')}>
+              <option value="">None (Active full year)</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={m}>{MONTH_FULL[i]}</option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Reactivated From Month">
+            <Select {...register('reactivatedFromMonth')}>
+              <option value="">None (Remains inactive)</option>
+              {MONTHS.map((m, i) => (
+                <option key={m} value={m}>{MONTH_FULL[i]}</option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+        {(watchedStatus === 'inactive' || watchedInactiveMonth) && (
+          <p className="text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
+            ℹ️ Months during the inactive period will be labeled as &ldquo;Inactive&rdquo; in reports. Previous months retain their contribution history and will not be erased.
+          </p>
+        )}
+      </div>
+
       <div className="pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
         <label className="text-sm font-semibold mb-2 block" style={{ color: 'var(--text-1)' }}>Monthly Payments ({CURRENCY})</label>
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
-          {MONTHS.map((month, i) => (
-            <div key={month} className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium text-center" style={{ color: 'var(--text-3)' }}>{MONTH_LABELS[i]}</span>
-              <input
-                type="number"
-                min={0}
-                step={0.01}
-                {...register(month)}
-                className="input text-center text-xs py-1.5 px-1"
-              />
-            </div>
-          ))}
+          {MONTHS.map((month, i) => {
+            const tempContrib = {
+              status: watchedStatus,
+              inactiveFromMonth: watchedInactiveMonth,
+              reactivatedFromMonth: watchedReactivatedMonth,
+            };
+            const isInactiveThisMonth = isMonthInactive(tempContrib, month);
+
+            return (
+              <div key={month} className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium text-center" style={{ color: 'var(--text-3)' }}>
+                  {MONTH_LABELS[i]} {isInactiveThisMonth && <span className="text-[9px] text-amber-600 block">(Inactive)</span>}
+                </span>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  {...register(month)}
+                  className="input text-center text-xs py-1.5 px-1"
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -172,7 +263,7 @@ const Contributions = () => {
             </Select>
             {!isViewer && (
               <Button onClick={() => { setEditContrib(null); setModalOpen(true); }} icon={Plus}>
-                Add Entry
+                Add Member to {year}
               </Button>
             )}
           </div>
@@ -201,8 +292,13 @@ const Contributions = () => {
         ) : contributions.length === 0 ? (
           <EmptyState
             icon={DollarSign}
-            title="No contribution records"
-            description={`No contribution entries found for year ${year}.`}
+            title={`No contribution records for ${year}`}
+            description={`Year ${year} starts fresh. Add members and record their monthly contributions.`}
+            action={!isViewer && (
+              <Button onClick={() => { setEditContrib(null); setModalOpen(true); }} icon={Plus}>
+                Add Member to {year}
+              </Button>
+            )}
           />
         ) : (
           contributions.map((c) => {
@@ -218,7 +314,13 @@ const Contributions = () => {
                       <p className="text-[11px]" style={{ color: 'var(--text-3)' }}>Member #{c.memberId?.memberNumber || '—'}</p>
                     </div>
                   </div>
-                  <Badge status={c.memberId?.status || 'active'} />
+                  <div className="flex items-center gap-1.5">
+                    {c.status === 'inactive' ? (
+                      <Badge status="inactive" label="Inactive" />
+                    ) : (
+                      <Badge status="active" label="Active" />
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center justify-between py-2 border-y" style={{ borderColor: 'var(--border)' }}>
@@ -227,14 +329,21 @@ const Contributions = () => {
                 </div>
 
                 <div className="space-y-1 text-xs">
-                  {(isExpanded ? MONTHS : MONTHS.slice(0, 4)).map((m, idx) => (
-                    <div key={m} className="flex justify-between py-0.5">
-                      <span style={{ color: 'var(--text-3)' }}>{MONTH_FULL[idx]}:</span>
-                      <span className={c[m] > 0 ? 'font-semibold text-emerald-500' : 'text-slate-400'}>
-                        {c[m] > 0 ? `${CURRENCY}${c[m]}` : '₹0'}
-                      </span>
-                    </div>
-                  ))}
+                  {(isExpanded ? MONTHS : MONTHS.slice(0, 4)).map((m, idx) => {
+                    const inactive = isMonthInactive(c, m);
+                    return (
+                      <div key={m} className="flex justify-between py-0.5">
+                        <span style={{ color: 'var(--text-3)' }}>{MONTH_FULL[idx]}:</span>
+                        {inactive ? (
+                          <span className="text-[11px] font-semibold text-slate-400 italic">Inactive</span>
+                        ) : (
+                          <span className={c[m] > 0 ? 'font-semibold text-emerald-500' : 'text-slate-400'}>
+                            {c[m] > 0 ? `${CURRENCY}${c[m]}` : '₹0'}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
                 <button
@@ -279,9 +388,9 @@ const Contributions = () => {
                   <td colSpan={isViewer ? 15 : 16}>
                     <EmptyState
                       icon={DollarSign}
-                      title="No records found"
-                      description={`No contributions recorded for ${year}.`}
-                      action={!isViewer && <Button onClick={() => { setEditContrib(null); setModalOpen(true); }} icon={Plus}>Add Contribution</Button>}
+                      title={`No records found for ${year}`}
+                      description={`Year ${year} starts fresh. Click below to add members and enter their contributions for ${year}.`}
+                      action={!isViewer && <Button onClick={() => { setEditContrib(null); setModalOpen(true); }} icon={Plus}>Add Member to {year}</Button>}
                     />
                   </td>
                 </tr>
@@ -294,16 +403,28 @@ const Contributions = () => {
                       <td>
                         <div className="flex items-center gap-2">
                           <Avatar name={c.memberId?.name || 'M'} size="sm" />
-                          <span className="font-semibold text-xs whitespace-nowrap" style={{ color: 'var(--text-1)' }}>
-                            {c.memberId?.name}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-semibold text-xs whitespace-nowrap" style={{ color: 'var(--text-1)' }}>
+                              {c.memberId?.name}
+                            </span>
+                            {c.status === 'inactive' && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-500">
+                                Inactive
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </td>
-                      {MONTHS.map((m) => (
-                        <td key={m} className={`text-center text-xs whitespace-nowrap ${c[m] > 0 ? 'text-emerald-500 font-medium' : 'text-slate-400'}`}>
-                          {c[m] > 0 ? `${CURRENCY}${c[m]}` : '—'}
-                        </td>
-                      ))}
+                      {MONTHS.map((m) => {
+                        const inactive = isMonthInactive(c, m);
+                        return (
+                          <td key={m} className={`text-center text-xs whitespace-nowrap ${inactive ? 'text-slate-400 italic' : (c[m] > 0 ? 'text-emerald-500 font-medium' : 'text-slate-400')}`}>
+                            {inactive ? (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-400">Inactive</span>
+                            ) : (c[m] > 0 ? `${CURRENCY}${c[m]}` : '—')}
+                          </td>
+                        );
+                      })}
                       <td className="text-center font-bold text-xs text-amber-500 whitespace-nowrap">
                         {CURRENCY}{rowTotal.toLocaleString('en-IN')}
                       </td>
@@ -351,11 +472,12 @@ const Contributions = () => {
         <Modal
           open={modalOpen}
           onClose={() => setModalOpen(false)}
-          title={editContrib ? 'Edit Contribution Record' : 'New Contribution Entry'}
+          title={editContrib ? `Edit Year ${year} Contribution` : `Add Member to Year ${year}`}
           size="lg"
         >
           <ContributionForm
             contribution={editContrib}
+            currentYear={year}
             onSuccess={() => setModalOpen(false)}
             onClose={() => setModalOpen(false)}
           />

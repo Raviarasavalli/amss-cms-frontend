@@ -15,6 +15,36 @@ const MONTH_HEADERS = [
 
 const RUPEE = '₹';
 
+const getMonthIndex = (month) => {
+  if (!month) return -1;
+  return MONTH_KEYS.indexOf(month.toLowerCase());
+};
+
+const isMonthInactive = (c, m) => {
+  if (!c) return false;
+  if (c[`${m}_inactive`] !== undefined) return c[`${m}_inactive`];
+
+  const targetIdx = getMonthIndex(m);
+  if (targetIdx === -1) return false;
+
+  if (c.status === 'inactive' || c.inactiveFromMonth) {
+    const inactiveIdx = c.inactiveFromMonth ? getMonthIndex(c.inactiveFromMonth) : 0;
+    const reactivatedIdx = c.reactivatedFromMonth ? getMonthIndex(c.reactivatedFromMonth) : -1;
+
+    if (reactivatedIdx !== -1 && inactiveIdx !== -1 && reactivatedIdx > inactiveIdx) {
+      return targetIdx >= inactiveIdx && targetIdx < reactivatedIdx;
+    }
+
+    if (inactiveIdx !== -1) {
+      return targetIdx >= inactiveIdx;
+    }
+
+    return c.status === 'inactive';
+  }
+
+  return false;
+};
+
 /**
  * Embeds the official A.M.S. Society logo image in the center of the PDF header
  */
@@ -100,8 +130,12 @@ export const createAmmsContributionPdf = ({
     ];
 
     MONTH_KEYS.forEach((mKey, mIdx) => {
+      const inactive = isMonthInactive(c, mKey) || isMonthInactive(m, mKey);
       const val = c[mKey] !== undefined && c[mKey] !== null ? Number(c[mKey]) : null;
-      if (val !== null && val > 0) {
+
+      if (inactive) {
+        row.push('Inactive');
+      } else if (val !== null && val > 0) {
         monthSums[mIdx] += val;
         grandTotal += val;
         row.push(`${RUPEE}${val.toLocaleString('en-IN')}`);
